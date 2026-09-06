@@ -440,6 +440,16 @@
     if (setFacilities("1")) notifyRefresh();
   };
 
+  function exportFileName() {
+    while (true) {
+      var name = window.prompt("Enter a valid file name ending in .json:", "retrobowl-save.json");
+      if (name === null) return null;
+      name = name.trim();
+      if (name && name !== "." && name !== ".." && /^[^<>:\"/\\|?*\x00-\x1F]+\.json$/.test(name)) return name;
+      alert("File name must be valid and end in .json.");
+    }
+  }
+
   document.getElementById("a-export").onclick = function () {
     var key = findSaveKey();
     var s = localStorage.getItem(key);
@@ -447,6 +457,8 @@
       alert("Nothing to export.");
       return;
     }
+    var fileName = exportFileName();
+    if (!fileName) return;
     var obj = { localStorage: {} };
     obj.localStorage[key] = s;
     OPT_KEYS.forEach(function (ok) {
@@ -454,9 +466,11 @@
       if (ov) obj.localStorage[ok] = ov;
     });
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(obj)], { type: "application/json" }));
-    a.download = "retrobowl-save.json";
+    var downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(obj)], { type: "application/json" }));
+    a.href = downloadUrl;
+    a.download = fileName;
     a.click();
+    setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 0);
   };
 
   document.getElementById("a-import").onclick = function () {
@@ -492,6 +506,7 @@
         }
         localStorage.setItem(target, ini);
         notifyRefresh();
+        showSiteAlert("Data imported successfully.");
       } catch (err) {
         alert("Import failed.");
       }
@@ -514,14 +529,28 @@
   syncValues();
 
   var alertBox = document.getElementById("jax-alert");
+  var alertMessage = document.getElementById("alert-message");
+  var alertNo = document.getElementById("alert-no");
+  var alertYes = document.getElementById("alert-yes");
+  var alertClose = document.getElementById("alert-close");
+  function showSiteAlert(message) {
+    alertMessage.textContent = message;
+    alertNo.style.display = "none";
+    alertYes.style.display = "none";
+    alertClose.style.display = "block";
+    alertBox.classList.add("show");
+  }
+  function hideSiteAlert() {
+    alertBox.classList.remove("show");
+  }
   if (!localStorage.getItem("jax_starter_prompted")) {
     alertBox.classList.add("show");
   }
-  document.getElementById("alert-no").onclick = function () {
+  alertNo.onclick = function () {
     localStorage.setItem("jax_starter_prompted", "1");
-    alertBox.classList.remove("show");
+    hideSiteAlert();
   };
-  document.getElementById("alert-yes").onclick = function () {
+  alertYes.onclick = function () {
     localStorage.setItem("jax_starter_prompted", "1");
     fetch("saves/starter.json")
       .then(function (r) { return r.json(); })
@@ -535,7 +564,8 @@
       })
       .catch(function () {
         alert("Could not load starter save.");
-        alertBox.classList.remove("show");
+        hideSiteAlert();
       });
   };
+  alertClose.onclick = hideSiteAlert;
 })();

@@ -105,6 +105,7 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
   flex:1;font-family:"Press Start 2P",monospace;font-size:7px;color:#fff;
   background:#163db0;border:2px solid #fff;border-radius:8px;padding:10px 6px;cursor:pointer
 }
+#alert-close{display:none}
 </style>
 </head>
 <body>
@@ -210,11 +211,11 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
       <button class="fullbtn" type="button" id="a-fac">APPLY</button>
     </div>
     <div class="two">
-      <button type="button" id="a-export">EXPORT</button>
-      <button type="button" id="a-import">IMPORT</button>
+      <button type="button" id="a-export">EXPORT DATA</button>
+      <button type="button" id="a-import">IMPORT DATA</button>
     </div>
     <input id="f-import" type="file" accept=".json,.save,application/json" style="display:none">
-    <button class="fullbtn" type="button" id="a-reload" style="margin-top:8px">RELOAD</button>
+    <button class="fullbtn" type="button" id="a-reload" style="margin-top:8px">RELOAD GAME</button>
   </div>
   <div id="jax-foot">
     <a href="https://github.com/jaxsonbunch/retro-bowl-modded" target="_blank" rel="noopener noreferrer">VIEW SOURCE CODE</a>
@@ -223,10 +224,11 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
 
 <div id="jax-alert">
   <div class="box">
-    <p>Load a modded starter save with max credits, salary cap, facilities, fans, and a full roster?</p>
+    <p id="alert-message">Load a modded starter save with max credits, salary cap, facilities, fans, and a full roster?</p>
     <div class="actions">
       <button type="button" id="alert-no">NO</button>
       <button type="button" id="alert-yes">YES</button>
+      <button type="button" id="alert-close">END</button>
     </div>
   </div>
 </div>
