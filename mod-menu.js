@@ -292,7 +292,7 @@
             localStorage.setItem(k, o.localStorage[k]);
           });
         }
-        notifyRefresh();
+        location.reload();
       })
       .catch(function () {
         alert("Could not load starter save.");
