@@ -1,0 +1,14 @@
+{
+  "name": "retro-bowl-modded",
+  "version": "1.0.0",
+  "description": "Modded version of retro bowl",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "author": "jaxsonbunch",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

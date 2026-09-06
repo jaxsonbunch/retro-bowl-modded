@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "checkJs": false
+  },
+  "include": [
+    "mod-menu.js"
+  ],
+  "exclude": [
+    "html5game/**/*.js"
+  ]
+}
