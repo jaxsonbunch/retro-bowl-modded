@@ -14,6 +14,7 @@
   var panel = document.getElementById("jax-panel");
   var openBtn = document.getElementById("jax-open");
   var dimmer = document.getElementById("jax-dimmer");
+  var modUiHidden = false;
 
   function setGamePaused(paused) {
     if (typeof window._cg4 === "boolean") window._cg4 = paused;
@@ -31,6 +32,14 @@
     dimmer.classList.remove("visible");
     openBtn.classList.remove("hidden");
     setGamePaused(false);
+  }
+
+  function toggleMenuVisibility() {
+    modUiHidden = !modUiHidden;
+    panel.classList.toggle("mod-ui-hidden", modUiHidden);
+    openBtn.classList.toggle("mod-ui-hidden", modUiHidden);
+    dimmer.classList.toggle("mod-ui-hidden", modUiHidden);
+    setGamePaused(!modUiHidden && panel.classList.contains("open"));
   }
 
   function findSaveKey() {
@@ -284,8 +293,7 @@
   window.addEventListener("keydown", function (e) {
     if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
       e.preventDefault();
-      if (panel.classList.contains("open")) closeMenu();
-      else openMenu();
+      toggleMenuVisibility();
     }
   });
 

@@ -36,11 +36,16 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
   pointer-events:none;transition:opacity .2s ease,transform .25s ease,visibility 0s linear .25s
 }
 #jax-panel.open{opacity:1;visibility:visible;transform:translateX(0);pointer-events:auto;transition:opacity .2s ease,transform .25s ease,visibility 0s linear 0s}
+#jax-panel.mod-ui-hidden,#jax-open.mod-ui-hidden,#jax-dimmer.mod-ui-hidden{
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .2s ease,visibility 0s linear .2s
+}
 #jax-head{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 16px 13px;border-bottom:2px solid rgba(255,255,255,.35);flex-shrink:0
 }
 #jax-head span{font-size:12px;letter-spacing:.5px}
+#jax-title{display:flex;align-items:center;gap:9px}
 #jax-x{
   background:transparent;border:2px solid #fff;color:#fff;border-radius:4px;
   width:30px;height:30px;font-family:"Press Start 2P",monospace;font-size:11px;
@@ -111,7 +116,7 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
 
 <div id="jax-panel">
   <div id="jax-head">
-    <span>JAXSONS MOD MENU</span>
+    <span id="jax-title">JAXSONS MOD MENU</span>
     <button id="jax-x" type="button">X</button>
   </div>
   <div id="jax-body">
