@@ -57,6 +57,10 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
 #jax-foot a{font-family:"Press Start 2P",monospace;font-size:10px;color:#fff;text-decoration:underline}
 .sec{margin-bottom:18px}
 .sec label{display:block;margin:0 0 8px;font-size:11px;color:#fff;letter-spacing:.3px}
+.mod-category{margin:0 0 18px;padding:12px 10px 4px;border:2px solid rgba(255,255,255,.35);border-radius:6px}
+.mod-category>h2{margin:0 0 10px;font-size:10px;color:#fff;letter-spacing:.4px}
+.mod-toggle{display:flex;align-items:center;gap:9px;margin:0 0 10px;font-size:9px;line-height:1.45;cursor:pointer}
+.mod-toggle input{width:16px;height:16px;flex-shrink:0;accent-color:#fff}
 .line{display:flex;gap:6px;align-items:center;margin-bottom:6px}
 .line input{
   flex:1;min-width:0;font-family:"Press Start 2P",monospace;font-size:11px;color:#fff;
@@ -120,6 +124,23 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
     <button id="jax-x" type="button">X</button>
   </div>
   <div id="jax-body">
+    <div class="mod-category">
+      <h2>GAMEPLAY CHEATS</h2>
+      <label class="mod-toggle"><input type="checkbox" data-mod="fieldGoalAimbot">FIELD GOAL AIMBOT</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noTackles">NO TACKLES</label>
+    </div>
+    <div class="mod-category">
+      <h2>PLAYER CHEATS</h2>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noFumbles">NO FUMBLES</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noInjuries">NO INJURIES</label>
+    </div>
+    <div class="mod-category">
+      <h2>GAME UTILITIES</h2>
+      <label class="mod-toggle"><input type="checkbox" data-mod="freezeClock">FREEZE CLOCK</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="unlimitedDowns">UNLIMITED DOWNS</label>
+      <button class="fullbtn" type="button" id="a-give-td">GIVE TD</button>
+      <button class="fullbtn" type="button" id="a-win-game">WIN GAME</button>
+    </div>
     <div class="sec">
       <label>COACHING CREDITS</label>
       <div class="line">
@@ -152,6 +173,10 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
         <button class="sq" type="button" id="f-minus">-</button>
       </div>
       <button class="fullbtn" type="button" id="a-fans">APPLY</button>
+    </div>
+    <div class="sec">
+      <label>TEAM MORALE</label>
+      <button class="fullbtn" type="button" id="a-morale-max">MAX TEAM MORALE</button>
     </div>
     <div class="sec">
       <label>ROSTER LIMIT</label>

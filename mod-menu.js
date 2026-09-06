@@ -15,6 +15,167 @@
   var openBtn = document.getElementById("jax-open");
   var dimmer = document.getElementById("jax-dimmer");
   var modUiHidden = false;
+  var MOD_SETTINGS_KEY = "jax_gameplay_mods";
+  var gameplayMods = window.JaxMods = {
+    fieldGoalAimbot: false,
+    noTackles: false,
+    noFumbles: false,
+    noInjuries: false,
+    freezeClock: false,
+    unlimitedDowns: false
+  };
+  var frozenClock = null;
+  var tickerMessageIndex = 0;
+
+  if (typeof window._Q_ === "function") {
+    window._Q_ = function () {
+      tickerMessageIndex = (tickerMessageIndex + 1) % 2;
+      return tickerMessageIndex === 0
+        ? "this mod so tuff boiiii"
+        : "Mod made by Jaxson and available on GitHub :)";
+    };
+  }
+
+  try {
+    var savedGameplayMods = JSON.parse(localStorage.getItem(MOD_SETTINGS_KEY) || "{}");
+    Object.keys(gameplayMods).forEach(function (name) {
+      if (typeof savedGameplayMods[name] === "boolean") gameplayMods[name] = savedGameplayMods[name];
+    });
+  } catch (err) {}
+
+  function saveGameplayMods() {
+    localStorage.setItem(MOD_SETTINGS_KEY, JSON.stringify(gameplayMods));
+  }
+
+  function installGameplayHooks() {
+    var originalDropBall = window._W31;
+    if (typeof originalDropBall === "function") {
+      window._W31 = function () {
+        if (gameplayMods.noFumbles) return;
+        return originalDropBall.apply(this, arguments);
+      };
+    }
+    var originalInjuryCheck = window._mf1;
+    if (typeof originalInjuryCheck === "function") {
+      window._mf1 = function () {
+        if (gameplayMods.noInjuries) return 0;
+        return originalInjuryCheck.apply(this, arguments);
+      };
+    }
+    var originalSubtractTime = window._Ad1;
+    if (typeof originalSubtractTime === "function") {
+      window._Ad1 = function () {
+        if (gameplayMods.freezeClock) return;
+        return originalSubtractTime.apply(this, arguments);
+      };
+    }
+    var originalTackle = window._f81;
+    if (typeof originalTackle === "function") {
+      window._f81 = function () {
+        if (gameplayMods.noTackles) return;
+        return originalTackle.apply(this, arguments);
+      };
+    }
+    var originalKick = window._y11;
+    if (typeof originalKick === "function") {
+      window._y11 = function () {
+        if (gameplayMods.fieldGoalAimbot && arguments[0]) {
+          arguments[0]._D11 = 55;
+          arguments[0]._101 = 300;
+        }
+        return originalKick.apply(this, arguments);
+      };
+    }
+  }
+
+  function applyMatchControls() {
+    if (typeof window._si !== "function") return;
+    try {
+      var matches = window._si(71);
+      matches.forEach(function (match) {
+        if (match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return;
+        if (gameplayMods.freezeClock) {
+          if (!frozenClock) frozenClock = { minutes: match._r11, seconds: match._s11 };
+          match._r11 = frozenClock.minutes;
+          match._s11 = frozenClock.seconds;
+        } else {
+          frozenClock = null;
+        }
+        if (gameplayMods.unlimitedDowns && match._t11 >= 4) match._t11 = 1;
+      });
+      window._si(64).forEach(function (controller) {
+        if (controller._Gn !== undefined && typeof window._Yi === "function") {
+          window._Yi(controller._Gn, "op_tips", 0);
+        }
+      });
+    } catch (err) {}
+  }
+
+  installGameplayHooks();
+  window.setInterval(applyMatchControls, 50);
+
+  function activeController() {
+    if (typeof window._si !== "function") return null;
+    var controllers = window._si(64);
+    return controllers && controllers.length ? controllers[0] : null;
+  }
+
+  function queueAction(message, run) {
+    alert(message);
+    run();
+  }
+
+  function clearGameDialogs(controller) {
+    [46, 38, 47, 4].forEach(function (objectId) {
+      if (typeof window._cr === "function") window._cr(controller, objectId);
+    });
+  }
+
+  function maxTeamMorale() {
+    if (typeof window._si !== "function" || typeof window._wi !== "function" || typeof window._zi !== "function" || typeof window._Yi !== "function") return;
+    try {
+      window._si(64).forEach(function (team) {
+        [team._Ln, team._Pz].forEach(function (roster) {
+          if (roster === undefined || roster === null) return;
+          for (var index = 0; index < window._wi(roster); index++) {
+            var player = window._zi(roster, index);
+            if (player !== undefined && player !== null) window._Yi(player, "attitude", 100);
+          }
+        });
+      });
+    } catch (err) {}
+  }
+
+  function giveTouchdown() {
+    queueAction("Touchdown given. Returning you to the play.", function () {
+      var controller = activeController();
+      if (!controller || typeof window._si !== "function" || typeof window._hB !== "function") return;
+      var matches = window._si(71);
+      var match = matches && matches.length ? matches[0] : null;
+      if (!match) return;
+      clearGameDialogs(controller);
+      match._UD = match._0z;
+      setGamePaused(false);
+      window._hB(controller, controller, 1);
+      closeMenu();
+    });
+  }
+
+  function winGame() {
+    queueAction("Win Game is running now. Close the menu when you are ready.", function () {
+      var controller = activeController();
+      if (!controller || typeof window._5g1 !== "function" || typeof window._si !== "function") return;
+      var matches = window._si(71);
+      var match = matches && matches.length ? matches[0] : null;
+      if (match && match._Sb1 && match._0z !== undefined) {
+        var playerSide = match._0z;
+        var opponentSide = playerSide ? 0 : 1;
+        match._Sb1[playerSide] = 67;
+        match._Sb1[opponentSide] = 0;
+      }
+      window._5g1(controller, controller);
+    });
+  }
 
   function setGamePaused(paused) {
     if (typeof window._cg4 === "boolean") window._cg4 = paused;
@@ -139,6 +300,20 @@
   panel.addEventListener("keypress", function (e) { e.stopPropagation(); });
   panel.addEventListener("mousedown", function (e) { e.stopPropagation(); });
   panel.addEventListener("click", function (e) { e.stopPropagation(); });
+
+  Array.prototype.forEach.call(panel.querySelectorAll("[data-mod]"), function (input) {
+    input.checked = gameplayMods[input.getAttribute("data-mod")];
+    input.onchange = function () {
+      gameplayMods[input.getAttribute("data-mod")] = input.checked;
+      saveGameplayMods();
+    };
+  });
+  document.getElementById("a-give-td").onclick = giveTouchdown;
+  document.getElementById("a-win-game").onclick = winGame;
+  document.getElementById("a-morale-max").onclick = function () {
+    maxTeamMorale();
+    alert("Team morale is now maxed.");
+  };
 
   document.getElementById("c-plus").onclick = function () { add("v-credits", 1000); };
   document.getElementById("c-minus").onclick = function () { add("v-credits", -1000); };

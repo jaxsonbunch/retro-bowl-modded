@@ -1,4 +1,4 @@
-msg_Update	Thank you for updating Retro Bowl!##17 game schedules will kick in when you start a new season and you can now change the height of a pass by tapping the screen with a second finger whilst aiming.##I hope you like it! - Simon
+msg_Update	Thank you for updating Retro Bowl Modded!##17 game schedules will kick in when you start a new season and you can now change the height of a pass by tapping the screen with a second finger whilst aiming.##Enjoy the mod!
 ui_NewStarGames	New Star Games
 ui_Back	Back
 ui_Home	Home
@@ -660,7 +660,6 @@ injurytype_9	Calf
 injurytype_10	Ankle
 injurytype_11	Foot
 ui_SkipTutorial	Skip Tutorial
-ui_Credits	Design & Code by Simon Read      ***      Art by  Savage @pixelnfl      ***      Music by Heatley Bros      ***      Special thanks to John Holden, @MrSpecialK_, Will Thompson and Five Aces      ***      Also a huge thank you to all the league organizers and players!
 match_TooLow	Too Low
 match_Doink	Doink
 ui_WeatherFX	Weather FX
@@ -817,40 +816,6 @@ ui_Connecting	Connecting...
 ui_FavouriteTeam	Favorite Team
 msg_Welcome	Welcome to Retro Bowl!##You are about to start your first season as the head coach of a pro football team.##The path to success is an arduous one but if you believe in yourself and can inspire your team then glory awaits!#
 msg_LimitedVersion	*** Limited Version - $num games remaining ***
-ui_Tip	Tip
-ui_Tips	Tips
-tip_1	Tired players are more likely to fumble the ball
-tip_2	Upgrading your rehab facility will improve energy recovery
-tip_3	After year 2 it is possible to get job offers from other teams
-tip_4	Toxic players bring down the attitudes of team mates after a loss
-tip_5	Players tire more as the season goes on
-tip_6	Strong players produce more stiff arms in a game
-tip_7	Upgrading your stadium will give the fans an immediate boost
-tip_8	Your quarterback's throwing range depletes during a game according to his stamina
-tip_9	Diving to the ground or running out of bounds will protect against fumbles
-tip_10	Tired players will lose morale
-tip_11	Some coaches have traits that can give the team a boost
-tip_12	Resting a tired player will boost his morale
-tip_13	A player's game performance can affect his morale
-tip_14	Poor catching skills lead to bobbles and dropped balls
-tip_15	Improve your rehab facility to reduce the number of injuries suffered
-tip_16	If your QB is getting rushed you need stronger offensive linemen
-tip_17	Coaching Credit isn't cash, it's kudos - it represents how much respect you have from the owner, team and fans
-tip_18	Upgrading your training facility will give players an immediate morale boost
-tip_19	Kick range depletes during a game depending on stamina
-tip_20	Fast players are more likely to hurdle tackles
-tip_21	Running the ball out of bounds will stop the clock
-tip_22	Experienced players are more likely to avoid tackles
-tip_23	Don't be afraid to throw the ball out of bounds to avoid a sack
-tip_24	Tired players get an immediate boost when you improve the rehab facilities
-tip_25	Only players with good catching skills can jump and dive catch the ball
-tip_26	Upgrading your rehab facility will give tired players an immediate boost
-tip_27	Older players lose more energy during a game
-tip_28	Cutting toxic players will improve team morale
-tip_29	You cannot trade between teams after week 8
-tip_30	Sometimes another team will offer you a draft pick for one of your players
-tip_31	Happier coaches level up quicker
-tip_32	Training regimes affect a player's happiness, XP, energy and injury risk
 btn_NotInterested	Reject
 ui_SoundFX	Sound FX
 ui_Zoom	Cam Zoom
@@ -864,7 +829,7 @@ ui_ChooseFace	Choose Face
 msg_ChooseFace	Choose your own profile image!
 ui_Uniforms	Uniforms
 btn_Uniforms	Change#Uniforms
-msg_TickerTwitter	Mod by Jaxson · github.com/jaxsonbunch/retro-bowl-modded
+msg_TickerTwitter	this mod so tuff boiiii
 msg_TickerReddit	Mod made by Jaxson and available on GitHub :)
 msg_NextGame	Next game: $teamname1 at $teamname2
 ui_VisitKong	Visit Kongregate.com
