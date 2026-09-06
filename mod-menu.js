@@ -1,7 +1,11 @@
 (function () {
   function boot() {
-    if (typeof GameMaker_Init === "function") GameMaker_Init();
-    else setTimeout(boot, 40);
+    if (typeof GameMaker_Init !== "function") {
+      setTimeout(boot, 40);
+      return;
+    }
+    GameMaker_Init();
+    installGameplayHooks();
   }
   window.addEventListener("load", function () {
     window.PokiSDK = null;
@@ -21,6 +25,7 @@
     noTackles: false,
     noFumbles: false,
     noInjuries: false,
+    infiniteQBThrowRange: false,
     freezeClock: false,
     unlimitedDowns: false
   };
@@ -49,35 +54,58 @@
 
   function installGameplayHooks() {
     var originalDropBall = window._W31;
-    if (typeof originalDropBall === "function") {
+    if (typeof originalDropBall === "function" && !originalDropBall.__jaxHooked) {
       window._W31 = function () {
         if (gameplayMods.noFumbles) return;
         return originalDropBall.apply(this, arguments);
       };
+      window._W31.__jaxHooked = true;
     }
     var originalInjuryCheck = window._mf1;
-    if (typeof originalInjuryCheck === "function") {
+    if (typeof originalInjuryCheck === "function" && !originalInjuryCheck.__jaxHooked) {
       window._mf1 = function () {
         if (gameplayMods.noInjuries) return 0;
         return originalInjuryCheck.apply(this, arguments);
       };
+      window._mf1.__jaxHooked = true;
     }
     var originalSubtractTime = window._Ad1;
-    if (typeof originalSubtractTime === "function") {
+    if (typeof originalSubtractTime === "function" && !originalSubtractTime.__jaxHooked) {
       window._Ad1 = function () {
         if (gameplayMods.freezeClock) return;
         return originalSubtractTime.apply(this, arguments);
       };
+      window._Ad1.__jaxHooked = true;
     }
     var originalTackle = window._f81;
-    if (typeof originalTackle === "function") {
+    if (typeof originalTackle === "function" && !originalTackle.__jaxHooked) {
       window._f81 = function () {
         if (gameplayMods.noTackles) return;
         return originalTackle.apply(this, arguments);
       };
+      window._f81.__jaxHooked = true;
+    }
+    var originalAim = window._k01;
+    if (typeof originalAim === "function" && !originalAim.__jaxHooked) {
+      window._k01 = function () {
+        if (!gameplayMods.infiniteQBThrowRange || typeof window.min !== "function") {
+          return originalAim.apply(this, arguments);
+        }
+        var nativeMin = window.min;
+        window.min = function (first, second) {
+          if (second === 100 && first > 100) return first;
+          return nativeMin.apply(this, arguments);
+        };
+        try {
+          return originalAim.apply(this, arguments);
+        } finally {
+          window.min = nativeMin;
+        }
+      };
+      window._k01.__jaxHooked = true;
     }
     var originalKick = window._y11;
-    if (typeof originalKick === "function") {
+    if (typeof originalKick === "function" && !originalKick.__jaxHooked) {
       window._y11 = function () {
         if (gameplayMods.fieldGoalAimbot && arguments[0]) {
           arguments[0]._D11 = 55;
@@ -85,12 +113,14 @@
         }
         return originalKick.apply(this, arguments);
       };
+      window._y11.__jaxHooked = true;
     }
   }
 
   function applyMatchControls() {
     if (typeof window._si !== "function") return;
     try {
+      installGameplayHooks();
       var matches = window._si(71);
       matches.forEach(function (match) {
         if (match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return;
@@ -146,14 +176,26 @@
     } catch (err) {}
   }
 
+  function activeMatch() {
+    if (typeof window._si !== "function") return null;
+    var matches = window._si(71);
+    var match = matches && matches.length ? matches[0] : null;
+    if (!match || match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return null;
+    return match;
+  }
+
   function giveTouchdown() {
-    queueAction("Touchdown given. Returning you to the play.", function () {
+    var match = activeMatch();
+    if (!match) {
+      alert("You must be in a game.");
+      return;
+    }
+    queueAction("Touchdown given. Choose 1 or 2 points after the touchdown.", function () {
       var controller = activeController();
-      if (!controller || typeof window._si !== "function" || typeof window._hB !== "function") return;
-      var matches = window._si(71);
-      var match = matches && matches.length ? matches[0] : null;
-      if (!match) return;
+      if (!controller || typeof window._hB !== "function") return;
       clearGameDialogs(controller);
+      match._6F = 40;
+      match._l61 = 10;
       match._UD = match._0z;
       setGamePaused(false);
       window._hB(controller, controller, 1);
@@ -162,12 +204,15 @@
   }
 
   function winGame() {
+    var match = activeMatch();
+    if (!match) {
+      alert("You must be in a game.");
+      return;
+    }
     queueAction("Win Game is running now. Close the menu when you are ready.", function () {
       var controller = activeController();
-      if (!controller || typeof window._5g1 !== "function" || typeof window._si !== "function") return;
-      var matches = window._si(71);
-      var match = matches && matches.length ? matches[0] : null;
-      if (match && match._Sb1 && match._0z !== undefined) {
+      if (!controller || typeof window._5g1 !== "function") return;
+      if (match._Sb1 && match._0z !== undefined) {
         var playerSide = match._0z;
         var opponentSide = playerSide ? 0 : 1;
         match._Sb1[playerSide] = 67;
@@ -336,12 +381,6 @@
   };
   document.getElementById("a-salary").onclick = function () {
     if (setField("salary_cap", val("v-salary"))) notifyRefresh();
-  };
-  document.getElementById("a-salary-max").onclick = function () {
-    document.getElementById("v-salary").value = "999999999";
-    setField("salary_cap", "999999999");
-    setField("boost_salary_cap", "999999999");
-    notifyRefresh();
   };
   document.getElementById("a-fans").onclick = function () {
     if (setField("fans", val("v-fans"))) notifyRefresh();
