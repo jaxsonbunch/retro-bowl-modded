@@ -13,6 +13,25 @@
   var OPT_KEYS = ["RetroBowl.0.optiondata.dat", "RetroBowlModded.0.optiondata.dat"];
   var panel = document.getElementById("jax-panel");
   var openBtn = document.getElementById("jax-open");
+  var dimmer = document.getElementById("jax-dimmer");
+
+  function setGamePaused(paused) {
+    if (typeof window._cg4 === "boolean") window._cg4 = paused;
+  }
+
+  function openMenu() {
+    panel.classList.add("open");
+    dimmer.classList.add("visible");
+    openBtn.classList.add("hidden");
+    setGamePaused(true);
+  }
+
+  function closeMenu() {
+    panel.classList.remove("open");
+    dimmer.classList.remove("visible");
+    openBtn.classList.remove("hidden");
+    setGamePaused(false);
+  }
 
   function findSaveKey() {
     var i, k, v, n;
@@ -100,12 +119,10 @@
   openBtn.onclick = function (e) {
     e.preventDefault();
     e.stopPropagation();
-    panel.classList.add("open");
-    openBtn.classList.add("hidden");
+    openMenu();
   };
   document.getElementById("jax-x").onclick = function () {
-    panel.classList.remove("open");
-    openBtn.classList.remove("hidden");
+    closeMenu();
   };
 
   panel.addEventListener("keydown", function (e) { e.stopPropagation(); });
@@ -267,8 +284,8 @@
   window.addEventListener("keydown", function (e) {
     if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
       e.preventDefault();
-      panel.classList.remove("open");
-      openBtn.classList.toggle("hidden");
+      if (panel.classList.contains("open")) closeMenu();
+      else openMenu();
     }
   });
 
