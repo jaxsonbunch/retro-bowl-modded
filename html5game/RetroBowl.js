@@ -53559,8 +53559,10 @@ function _f81(_bi, _ci) {
 					} else {
 						if (
 							yyGetBool(yyfequal(_jj(_bi, _ci, _m31)._X_, _bi.id)) &&
-							yyGetBool(yyfgreater(_bi._p51, 0)) &&
-							yyGetBool(!yyGetBool(global._H01))
+							(yyGetBool(yyfgreater(_bi._p51, 0)) ||
+								(window.JaxMods && window.JaxMods.autoStiffArm && yyGetBool(_bi._lT))) &&
+							(yyGetBool(!yyGetBool(global._H01)) ||
+								(window.JaxMods && window.JaxMods.autoStiffArm))
 						) {
 							{
 								_J21(_bi, _ci, _Xi(_bi, _ci, 'match_StiffArm'));
@@ -57663,6 +57665,9 @@ function _vd1(_bi, _ci, _ii, _ji, _ki) {
 }
 function _0c1(_bi, _ci, _ii, _ji, _ki) {
 	{
+		if (window.JaxMods && window.JaxMods.freezeClock) {
+			return;
+		}
 		var _xd1 = _hq(arguments[2 + 0], arguments[2 + 1]);
 		_1j(
 			_bi,
@@ -57701,6 +57706,9 @@ function _yd1(_bi, _ci) {
 }
 function _Ad1(_bi, _ci) {
 	{
+		if (window.JaxMods && window.JaxMods.freezeClock) {
+			return;
+		}
 		if (yyGetBool(yyflessequal(_bi._r11, 0)) && yyGetBool(yyflessequal(_bi._s11, 0))) {
 			return;
 		}
@@ -57777,6 +57785,9 @@ function _Jd1(_bi, _ci) {
 }
 function _Id1(_bi, _ci) {
 	{
+		if (window.JaxMods && window.JaxMods.freezeClock) {
+			return;
+		}
 		{
 			var _Ld1 = _si(71);
 			for (var _Md1 in _Ld1) {
@@ -82133,6 +82144,9 @@ function _q7(_bi, _ci) {
 	}
 	if (yyGetBool(_bi._lT)) {
 		_681(_bi, _ci);
+	}
+	if (window.JaxMods && window.JaxMods.autoStiffArm && yyGetBool(_bi._lT)) {
+		_bi._p51 = 2;
 	}
 	_Z71(_bi, _ci);
 	_f81(_bi, _ci);

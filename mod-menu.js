@@ -32,11 +32,13 @@
     unlimitedDowns: false,
     infiniteStamina: false,
     noInterceptions: false,
+    autoStiffArm: false,
     playerSpeedMult: 1
   });
   var frozenClock = null;
   var tickerMessageIndex = 0;
   var playerObjectIds = null;
+  var stiffArmCooldown = 0;
 
   if (typeof window._Q_ === "function") {
     window._Q_ = function () {
@@ -134,6 +136,114 @@
     });
   }
 
+  function getBallHolder() {
+    try {
+      if (typeof window.global !== "undefined" && window.global && window.global._d01) {
+        var ball = window.global._d01;
+        if (ball && ball._X_ !== undefined && ball._X_ !== null && ball._X_ !== -4) {
+          return ball._X_;
+        }
+      }
+    } catch (err) {}
+    return null;
+  }
+
+  function getInstanceById(id) {
+    if (id === null || id === undefined || id === -4) return null;
+    var found = null;
+    eachFieldPlayer(function (inst) {
+      if (found) return;
+      if (inst.id === id || inst === id) found = inst;
+    });
+    if (found) return found;
+    if (typeof id === "object" && id && id._O01 !== undefined) return id;
+    return null;
+  }
+
+  function dist2(a, b) {
+    var dx = (a.x || 0) - (b.x || 0);
+    var dy = (a.y || 0) - (b.y || 0);
+    return dx * dx + dy * dy;
+  }
+
+  function applyAutoStiffArm() {
+    if (!gameplayMods.autoStiffArm) return;
+    if (stiffArmCooldown > 0) {
+      stiffArmCooldown -= 1;
+      return;
+    }
+    var holderId = getBallHolder();
+    if (holderId === null) return;
+    var carrier = getInstanceById(holderId);
+    if (!carrier) return;
+    if (carrier._lT === false || carrier._lT === 0) return;
+
+    carrier._p51 = 2;
+    if (carrier._u51 !== undefined) carrier._u51 = 2;
+
+    var near = [];
+    eachFieldPlayer(function (player) {
+      if (!player || player === carrier) return;
+      if (player._lT === true || player._lT === 1) return;
+      if (player._v21 || player._k31) return;
+      if (dist2(carrier, player) < 900) near.push(player);
+    });
+
+    if (!near.length) return;
+
+    near.sort(function (a, b) {
+      return dist2(carrier, a) - dist2(carrier, b);
+    });
+
+    var target = near[0];
+    carrier._p51 = 2;
+    carrier._l31 = target.id !== undefined ? target.id : target;
+
+    if (typeof window._J21 === "function") {
+      try {
+        window._J21(carrier, carrier, typeof window._Xi === "function" ? window._Xi(carrier, carrier, "match_StiffArm") : "match_StiffArm");
+      } catch (err) {}
+    }
+
+    try {
+      if (typeof target.y === "number" && typeof carrier.y === "number") {
+        target._Ea = carrier.y < target.y ? 2.2 : -2.2;
+      }
+      if (typeof target.x === "number" && typeof carrier.x === "number") {
+        var push = carrier.x < target.x ? 3.5 : -3.5;
+        target.x = target.x + push;
+        if (target._Da !== undefined) target._Da = push * 0.6;
+      }
+    } catch (err) {}
+
+    if (typeof window._Z01 === "function") {
+      try {
+        window._Z01(target, carrier, 4);
+      } catch (err) {}
+      try {
+        window._Z01(carrier, carrier, 9);
+      } catch (err) {}
+    }
+
+    stiffArmCooldown = 8;
+  }
+
+  function forceClockFrozen(match) {
+    if (!match) return;
+    if (!frozenClock) {
+      frozenClock = {
+        minutes: match._r11,
+        seconds: match._s11,
+        quarter: match._Wy
+      };
+    }
+    match._r11 = frozenClock.minutes;
+    match._s11 = frozenClock.seconds;
+    if (match._Yc1 !== undefined) match._Yc1 = 0;
+    if (match._Tb1 !== undefined) match._Tb1 = frozenClock.minutes * 60 + frozenClock.seconds;
+    if (match._Vb1 !== undefined) match._Vb1 = frozenClock.minutes * 60 + frozenClock.seconds;
+  }
+
   function installGameplayHooks() {
     var originalDropBall = window._W31;
     if (typeof originalDropBall === "function" && !originalDropBall.__jaxHooked) {
@@ -143,6 +253,7 @@
       };
       window._W31.__jaxHooked = true;
     }
+
     var originalInjuryCheck = window._mf1;
     if (typeof originalInjuryCheck === "function" && !originalInjuryCheck.__jaxHooked) {
       window._mf1 = function () {
@@ -151,22 +262,59 @@
       };
       window._mf1.__jaxHooked = true;
     }
+
     var originalSubtractTime = window._Ad1;
     if (typeof originalSubtractTime === "function" && !originalSubtractTime.__jaxHooked) {
       window._Ad1 = function () {
-        if (gameplayMods.freezeClock) return;
+        if (gameplayMods.freezeClock) {
+          forceClockFrozen(arguments[0] || activeMatch());
+          return;
+        }
         return originalSubtractTime.apply(this, arguments);
       };
       window._Ad1.__jaxHooked = true;
     }
+
+    var originalTimeAccum = window._0c1;
+    if (typeof originalTimeAccum === "function" && !originalTimeAccum.__jaxHooked) {
+      window._0c1 = function () {
+        if (gameplayMods.freezeClock) {
+          forceClockFrozen(arguments[0] || activeMatch());
+          return;
+        }
+        return originalTimeAccum.apply(this, arguments);
+      };
+      window._0c1.__jaxHooked = true;
+    }
+
+    var originalApplyTime = window._Id1;
+    if (typeof originalApplyTime === "function" && !originalApplyTime.__jaxHooked) {
+      window._Id1 = function () {
+        if (gameplayMods.freezeClock) {
+          forceClockFrozen(activeMatch());
+          return;
+        }
+        return originalApplyTime.apply(this, arguments);
+      };
+      window._Id1.__jaxHooked = true;
+    }
+
     var originalTackle = window._f81;
     if (typeof originalTackle === "function" && !originalTackle.__jaxHooked) {
       window._f81 = function () {
         if (gameplayMods.noTackles) return;
+        if (gameplayMods.autoStiffArm && arguments[0]) {
+          var self = arguments[0];
+          if (self && (self._lT === true || self._lT === 1)) {
+            self._p51 = 2;
+            if (self._u51 !== undefined) self._u51 = 2;
+          }
+        }
         return originalTackle.apply(this, arguments);
       };
       window._f81.__jaxHooked = true;
     }
+
     var originalCatch = window._j31;
     if (typeof originalCatch === "function" && !originalCatch.__jaxHooked) {
       window._j31 = function (_bi, _ci) {
@@ -175,6 +323,7 @@
       };
       window._j31.__jaxHooked = true;
     }
+
     var originalAim = window._k01;
     if (typeof originalAim === "function" && !originalAim.__jaxHooked) {
       window._k01 = function () {
@@ -194,6 +343,7 @@
       };
       window._k01.__jaxHooked = true;
     }
+
     var originalKick = window._y11;
     if (typeof originalKick === "function" && !originalKick.__jaxHooked) {
       window._y11 = function () {
@@ -215,9 +365,7 @@
       eachList(matches, function (match) {
         if (!match || match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return;
         if (gameplayMods.freezeClock) {
-          if (!frozenClock) frozenClock = { minutes: match._r11, seconds: match._s11 };
-          match._r11 = frozenClock.minutes;
-          match._s11 = frozenClock.seconds;
+          forceClockFrozen(match);
         } else {
           frozenClock = null;
         }
@@ -238,11 +386,29 @@
           }
         });
       }
+      if (gameplayMods.autoStiffArm) {
+        eachFieldPlayer(function (player) {
+          if (player && (player._lT === true || player._lT === 1)) {
+            if (player._p51 !== undefined && player._p51 < 2) player._p51 = 2;
+            if (player._u51 !== undefined) player._u51 = 2;
+          }
+        });
+        applyAutoStiffArm();
+      }
+      if (gameplayMods.playerSpeedMult && gameplayMods.playerSpeedMult !== 1) {
+        var mult = gameplayMods.playerSpeedMult;
+        eachFieldPlayer(function (player) {
+          if (!player || !(player._lT === true || player._lT === 1)) return;
+          if (player._W1 !== undefined && typeof player._W1 === "number" && player._W1 > 0) {
+            player._W1 = player._W1 * (1 + (mult - 1) * 0.02);
+          }
+        });
+      }
     } catch (err) {}
   }
 
   installGameplayHooks();
-  window.setInterval(applyMatchControls, 50);
+  window.setInterval(applyMatchControls, 33);
 
   function activeController() {
     if (typeof window._si !== "function") return null;
@@ -255,7 +421,7 @@
     return null;
   }
 
-  function queueAction(message, run) {
+  function voidAction(message, run) {
     alert(message);
     run();
   }
@@ -302,7 +468,7 @@
       alert("You must be in a game.");
       return;
     }
-    queueAction("Give td is running now. Close the menu when you are ready.", function () {
+    voidAction("Give td is running now. Close the menu when you are ready.", function () {
       var controller = activeController();
       if (!controller || typeof window._hB !== "function") return;
       clearGameDialogs(controller);
@@ -321,7 +487,7 @@
       alert("You must be in a game.");
       return;
     }
-    queueAction("Win Game is running now. Close the menu when you are ready.", function () {
+    voidAction("Win Game is running now. Close the menu when you are ready.", function () {
       var controller = activeController();
       if (!controller || typeof window._5g1 !== "function") return;
       if (match._Sb1 && match._0z !== undefined) {
@@ -563,7 +729,15 @@
   Array.prototype.forEach.call(panel.querySelectorAll("[data-mod]"), function (input) {
     input.checked = !!gameplayMods[input.getAttribute("data-mod")];
     input.onchange = function () {
-      gameplayMods[input.getAttribute("data-mod")] = input.checked;
+      var name = input.getAttribute("data-mod");
+      gameplayMods[name] = input.checked;
+      if (name === "freezeClock" && !input.checked) frozenClock = null;
+      if (name === "freezeClock" && input.checked) {
+        var m = activeMatch();
+        if (m) {
+          frozenClock = { minutes: m._r11, seconds: m._s11, quarter: m._Wy };
+        }
+      }
       saveGameplayMods();
     };
   });
