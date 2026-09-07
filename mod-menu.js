@@ -18,19 +18,25 @@
   var panel = document.getElementById("jax-panel");
   var openBtn = document.getElementById("jax-open");
   var dimmer = document.getElementById("jax-dimmer");
+  var exportBox = document.getElementById("jax-export");
+  var exportName = document.getElementById("export-name");
   var modUiHidden = false;
   var MOD_SETTINGS_KEY = "jax_gameplay_mods";
-  var gameplayMods = window.JaxMods = {
+  var gameplayMods = (window.JaxMods = {
     fieldGoalAimbot: false,
     noTackles: false,
     noFumbles: false,
     noInjuries: false,
     infiniteQBThrowRange: false,
     freezeClock: false,
-    unlimitedDowns: false
-  };
+    unlimitedDowns: false,
+    infiniteStamina: false,
+    noInterceptions: false,
+    playerSpeedMult: 1
+  });
   var frozenClock = null;
   var tickerMessageIndex = 0;
+  var playerObjectIds = null;
 
   if (typeof window._Q_ === "function") {
     window._Q_ = function () {
@@ -44,12 +50,88 @@
   try {
     var savedGameplayMods = JSON.parse(localStorage.getItem(MOD_SETTINGS_KEY) || "{}");
     Object.keys(gameplayMods).forEach(function (name) {
-      if (typeof savedGameplayMods[name] === "boolean") gameplayMods[name] = savedGameplayMods[name];
+      if (typeof savedGameplayMods[name] === "boolean" || typeof savedGameplayMods[name] === "number") {
+        gameplayMods[name] = savedGameplayMods[name];
+      }
     });
   } catch (err) {}
 
   function saveGameplayMods() {
     localStorage.setItem(MOD_SETTINGS_KEY, JSON.stringify(gameplayMods));
+  }
+
+  function isTypingBox(el) {
+    if (!el || !el.tagName) return false;
+    var tag = el.tagName.toUpperCase();
+    if (tag === "TEXTAREA") return true;
+    if (tag !== "INPUT") return false;
+    var type = (el.type || "text").toLowerCase();
+    return type === "text" || type === "number" || type === "search" || type === "tel" || type === "url" || type === "password" || type === "";
+  }
+
+  function lockSidebarFocus() {
+    var roots = [panel, openBtn, document.getElementById("jax-alert"), exportBox];
+    roots.forEach(function (root) {
+      if (!root) return;
+      var nodes = root.querySelectorAll("button, a, input, select, textarea, [tabindex]");
+      Array.prototype.forEach.call(nodes, function (el) {
+        if (isTypingBox(el)) el.tabIndex = 0;
+        else el.tabIndex = -1;
+      });
+      if (root.tagName === "BUTTON") root.tabIndex = -1;
+    });
+  }
+
+  function eachList(list, fn) {
+    if (!list) return;
+    if (typeof list.forEach === "function") {
+      list.forEach(fn);
+      return;
+    }
+    for (var key in list) {
+      if (!Object.prototype.hasOwnProperty.call(list, key)) continue;
+      fn(list[key], key);
+    }
+  }
+
+  function findPlayerObjectIds() {
+    if (playerObjectIds && playerObjectIds.length) return playerObjectIds;
+    var ids = [];
+    if (typeof window._si !== "function") return ids;
+    for (var id = 0; id < 140; id++) {
+      var list;
+      try {
+        list = window._si(id);
+      } catch (err) {
+        continue;
+      }
+      if (!list) continue;
+      var hit = false;
+      eachList(list, function (inst) {
+        if (hit || !inst) return;
+        if (inst._O01 !== undefined && (inst._j51 !== undefined || inst._W1 !== undefined)) {
+          hit = true;
+        }
+      });
+      if (hit) ids.push(id);
+    }
+    if (ids.length) playerObjectIds = ids;
+    return ids;
+  }
+
+  function eachFieldPlayer(fn) {
+    if (typeof window._si !== "function") return;
+    findPlayerObjectIds().forEach(function (id) {
+      var list;
+      try {
+        list = window._si(id);
+      } catch (err) {
+        return;
+      }
+      eachList(list, function (inst) {
+        if (inst && inst._O01 !== undefined) fn(inst);
+      });
+    });
   }
 
   function installGameplayHooks() {
@@ -84,6 +166,14 @@
         return originalTackle.apply(this, arguments);
       };
       window._f81.__jaxHooked = true;
+    }
+    var originalCatch = window._j31;
+    if (typeof originalCatch === "function" && !originalCatch.__jaxHooked) {
+      window._j31 = function (_bi, _ci) {
+        if (gameplayMods.noInterceptions && _bi && !_bi._lT) return 0;
+        return originalCatch.apply(this, arguments);
+      };
+      window._j31.__jaxHooked = true;
     }
     var originalAim = window._k01;
     if (typeof originalAim === "function" && !originalAim.__jaxHooked) {
@@ -122,8 +212,8 @@
     try {
       installGameplayHooks();
       var matches = window._si(71);
-      matches.forEach(function (match) {
-        if (match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return;
+      eachList(matches, function (match) {
+        if (!match || match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return;
         if (gameplayMods.freezeClock) {
           if (!frozenClock) frozenClock = { minutes: match._r11, seconds: match._s11 };
           match._r11 = frozenClock.minutes;
@@ -131,13 +221,23 @@
         } else {
           frozenClock = null;
         }
-        if (gameplayMods.unlimitedDowns && match._t11 >= 4) match._t11 = 1;
+        if (gameplayMods.unlimitedDowns && match._t11 >= 4 && match._t11 < 6) match._t11 = 1;
       });
-      window._si(64).forEach(function (controller) {
-        if (controller._Gn !== undefined && typeof window._Yi === "function") {
+      eachList(window._si(64), function (controller) {
+        if (controller && controller._Gn !== undefined && typeof window._Yi === "function") {
           window._Yi(controller._Gn, "op_tips", 0);
         }
       });
+      if (gameplayMods.infiniteStamina) {
+        eachFieldPlayer(function (player) {
+          if (player._B51 !== undefined) player._B51 = 10;
+          if (player._7j && typeof window._Yi === "function") {
+            try {
+              window._Yi(player._7j, "stamina", 10);
+            } catch (err) {}
+          }
+        });
+      }
     } catch (err) {}
   }
 
@@ -147,7 +247,12 @@
   function activeController() {
     if (typeof window._si !== "function") return null;
     var controllers = window._si(64);
-    return controllers && controllers.length ? controllers[0] : null;
+    if (!controllers) return null;
+    if (controllers.length) return controllers[0];
+    for (var key in controllers) {
+      if (Object.prototype.hasOwnProperty.call(controllers, key)) return controllers[key];
+    }
+    return null;
   }
 
   function queueAction(message, run) {
@@ -164,7 +269,8 @@
   function maxTeamMorale() {
     if (typeof window._si !== "function" || typeof window._wi !== "function" || typeof window._zi !== "function" || typeof window._Yi !== "function") return;
     try {
-      window._si(64).forEach(function (team) {
+      eachList(window._si(64), function (team) {
+        if (!team) return;
         [team._Ln, team._Pz].forEach(function (roster) {
           if (roster === undefined || roster === null) return;
           for (var index = 0; index < window._wi(roster); index++) {
@@ -179,7 +285,13 @@
   function activeMatch() {
     if (typeof window._si !== "function") return null;
     var matches = window._si(71);
-    var match = matches && matches.length ? matches[0] : null;
+    var match = null;
+    if (matches && matches.length) match = matches[0];
+    else {
+      eachList(matches, function (item) {
+        if (!match) match = item;
+      });
+    }
     if (!match || match._r11 === undefined || match._s11 === undefined || match._t11 === undefined) return null;
     return match;
   }
@@ -190,16 +302,16 @@
       alert("You must be in a game.");
       return;
     }
-    queueAction("Touchdown given. Choose 1 or 2 points after the touchdown.", function () {
+    queueAction("Give td is running now. Close the menu when you are ready.", function () {
       var controller = activeController();
       if (!controller || typeof window._hB !== "function") return;
       clearGameDialogs(controller);
       match._6F = 40;
       match._l61 = 10;
       match._UD = match._0z;
+      if (match._t11 >= 6) match._t11 = 1;
       setGamePaused(false);
       window._hB(controller, controller, 1);
-      closeMenu();
     });
   }
 
@@ -293,6 +405,11 @@
     ));
     document.getElementById("v-draft").value = getField("draft_picks_0", "0");
     document.getElementById("v-fac").value = getField("facility_stadium", "1");
+    var speedEl = document.getElementById("v-speed");
+    if (speedEl) {
+      speedEl.value = gameplayMods.playerSpeedMult;
+      document.getElementById("v-speed-label").textContent = Number(gameplayMods.playerSpeedMult).toFixed(1) + "x";
+    }
   }
 
   function replaceField(s, name, value) {
@@ -331,6 +448,81 @@
     el.value = String(n + delta);
   }
 
+  function collectExportData() {
+    saveGameplayMods();
+    var data = { localStorage: {} };
+    var i, k, v;
+    for (i = 0; i < localStorage.length; i++) {
+      k = localStorage.key(i);
+      if (!k) continue;
+      v = localStorage.getItem(k);
+      if (v !== null) data.localStorage[k] = v;
+    }
+    SAVE_KEYS.forEach(function (key) {
+      v = localStorage.getItem(key);
+      if (v) data.localStorage[key] = v;
+    });
+    OPT_KEYS.forEach(function (key) {
+      v = localStorage.getItem(key);
+      if (v) data.localStorage[key] = v;
+    });
+    return data;
+  }
+
+  function applyImportData(obj) {
+    if (!obj || !obj.localStorage) return false;
+    Object.keys(obj.localStorage).forEach(function (k) {
+      localStorage.setItem(k, obj.localStorage[k]);
+    });
+    return true;
+  }
+
+  function exportFileName(raw) {
+    var name = String(raw || "").trim();
+    name = name.replace(/\\/g, "/").split("/").pop();
+    name = name.replace(/[<>:"|?*\u0000-\u001f]/g, "");
+    name = name.replace(/(\.[A-Za-z0-9]+)+$/, "");
+    name = name.replace(/[^\w\s.-]/g, "").replace(/\s+/g, " ").trim();
+    if (!name) name = "retrobowl-save";
+    return name + ".json";
+  }
+
+  function downloadExport(filename) {
+    var data = collectExportData();
+    if (!data.localStorage || !Object.keys(data.localStorage).length) {
+      alert("Nothing to export.");
+      return;
+    }
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+    a.download = filename;
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href);
+    }, 1000);
+  }
+
+  function openExportPrompt() {
+    if (!exportBox) return;
+    exportName.value = "retrobowl-save";
+    exportBox.classList.add("show");
+  }
+
+  function closeExportPrompt() {
+    if (exportBox) exportBox.classList.remove("show");
+  }
+
+  function confirmExport() {
+    var filename = exportFileName(exportName.value);
+    exportName.value = filename.slice(0, -5);
+    closeExportPrompt();
+    downloadExport(filename);
+  }
+
+  function reloadGame() {
+    location.reload();
+  }
+
   openBtn.onclick = function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -340,19 +532,53 @@
     closeMenu();
   };
 
-  panel.addEventListener("keydown", function (e) { e.stopPropagation(); });
+  panel.addEventListener("keydown", function (e) {
+    e.stopPropagation();
+    if (e.key !== "Tab") return;
+    if (!isTypingBox(e.target)) {
+      e.preventDefault();
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    }
+  });
   panel.addEventListener("keyup", function (e) { e.stopPropagation(); });
   panel.addEventListener("keypress", function (e) { e.stopPropagation(); });
-  panel.addEventListener("mousedown", function (e) { e.stopPropagation(); });
+  panel.addEventListener("mousedown", function (e) {
+    e.stopPropagation();
+    var el = e.target;
+    if (isTypingBox(el)) return;
+    if (el && el.tagName === "INPUT") {
+      var type = (el.type || "").toLowerCase();
+      if (type === "range" || type === "checkbox" || type === "file") return;
+    }
+    if (el && el.closest && el.closest("label.mod-toggle")) return;
+    e.preventDefault();
+  });
   panel.addEventListener("click", function (e) { e.stopPropagation(); });
+  panel.addEventListener("focusin", function (e) {
+    if (!isTypingBox(e.target) && e.target && e.target.blur) e.target.blur();
+  });
+
+  lockSidebarFocus();
 
   Array.prototype.forEach.call(panel.querySelectorAll("[data-mod]"), function (input) {
-    input.checked = gameplayMods[input.getAttribute("data-mod")];
+    input.checked = !!gameplayMods[input.getAttribute("data-mod")];
     input.onchange = function () {
       gameplayMods[input.getAttribute("data-mod")] = input.checked;
       saveGameplayMods();
     };
   });
+  var speedSlider = document.getElementById("v-speed");
+  if (speedSlider) {
+    speedSlider.value = gameplayMods.playerSpeedMult;
+    document.getElementById("v-speed-label").textContent = Number(gameplayMods.playerSpeedMult).toFixed(1) + "x";
+    speedSlider.oninput = function () {
+      var v = parseFloat(this.value);
+      if (isNaN(v)) v = 1;
+      gameplayMods.playerSpeedMult = v;
+      document.getElementById("v-speed-label").textContent = v.toFixed(1) + "x";
+      saveGameplayMods();
+    };
+  }
   document.getElementById("a-give-td").onclick = giveTouchdown;
   document.getElementById("a-win-game").onclick = winGame;
   document.getElementById("a-morale-max").onclick = function () {
@@ -440,38 +666,29 @@
     if (setFacilities("1")) notifyRefresh();
   };
 
-  function exportFileName() {
-    while (true) {
-      var name = window.prompt("Enter a valid file name ending in .json:", "retrobowl-save.json");
-      if (name === null) return null;
-      name = name.trim();
-      if (name && name !== "." && name !== ".." && /^[^<>:\"/\\|?*\x00-\x1F]+\.json$/.test(name)) return name;
-      alert("File name must be valid and end in .json.");
-    }
-  }
-
   document.getElementById("a-export").onclick = function () {
-    var key = findSaveKey();
-    var s = localStorage.getItem(key);
-    if (!s) {
-      alert("Nothing to export.");
-      return;
-    }
-    var fileName = exportFileName();
-    if (!fileName) return;
-    var obj = { localStorage: {} };
-    obj.localStorage[key] = s;
-    OPT_KEYS.forEach(function (ok) {
-      var ov = localStorage.getItem(ok);
-      if (ov) obj.localStorage[ok] = ov;
-    });
-    var a = document.createElement("a");
-    var downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(obj)], { type: "application/json" }));
-    a.href = downloadUrl;
-    a.download = fileName;
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 0);
+    openExportPrompt();
   };
+
+  document.getElementById("export-cancel").onclick = function () {
+    closeExportPrompt();
+  };
+
+  document.getElementById("export-ok").onclick = function () {
+    confirmExport();
+  };
+
+  exportName.addEventListener("keydown", function (e) {
+    e.stopPropagation();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      confirmExport();
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeExportPrompt();
+    }
+  });
 
   document.getElementById("a-import").onclick = function () {
     document.getElementById("f-import").click();
@@ -484,29 +701,22 @@
     r.onload = function () {
       try {
         var t = r.result;
-        var ini = null;
-        var target = findSaveKey();
+        var loaded = false;
         try {
           var o = JSON.parse(t);
-          if (o.localStorage) {
-            Object.keys(o.localStorage).forEach(function (k) {
-              if (/savedata/i.test(k)) {
-                ini = o.localStorage[k];
-                target = k;
-              } else {
-                localStorage.setItem(k, o.localStorage[k]);
-              }
-            });
+          if (o && o.localStorage) {
+            loaded = applyImportData(o);
           }
         } catch (err) {}
-        if (!ini && t.indexOf("coach_credit=") !== -1) ini = t;
-        if (!ini) {
+        if (!loaded && t.indexOf("coach_credit=") !== -1) {
+          localStorage.setItem(findSaveKey(), t);
+          loaded = true;
+        }
+        if (!loaded) {
           alert("Could not read that file.");
           return;
         }
-        localStorage.setItem(target, ini);
-        notifyRefresh();
-        showSiteAlert("Data imported successfully.");
+        reloadGame();
       } catch (err) {
         alert("Import failed.");
       }
@@ -516,10 +726,13 @@
   };
 
   document.getElementById("a-reload").onclick = function () {
-    location.reload();
+    reloadGame();
   };
 
   window.addEventListener("keydown", function (e) {
+    if (e.key === "Tab" && panel.classList.contains("open") && !isTypingBox(e.target)) {
+      e.preventDefault();
+    }
     if (e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA") {
       e.preventDefault();
       toggleMenuVisibility();
@@ -529,28 +742,14 @@
   syncValues();
 
   var alertBox = document.getElementById("jax-alert");
-  var alertMessage = document.getElementById("alert-message");
-  var alertNo = document.getElementById("alert-no");
-  var alertYes = document.getElementById("alert-yes");
-  var alertClose = document.getElementById("alert-close");
-  function showSiteAlert(message) {
-    alertMessage.textContent = message;
-    alertNo.style.display = "none";
-    alertYes.style.display = "none";
-    alertClose.style.display = "block";
-    alertBox.classList.add("show");
-  }
-  function hideSiteAlert() {
-    alertBox.classList.remove("show");
-  }
   if (!localStorage.getItem("jax_starter_prompted")) {
     alertBox.classList.add("show");
   }
-  alertNo.onclick = function () {
+  document.getElementById("alert-no").onclick = function () {
     localStorage.setItem("jax_starter_prompted", "1");
-    hideSiteAlert();
+    alertBox.classList.remove("show");
   };
-  alertYes.onclick = function () {
+  document.getElementById("alert-yes").onclick = function () {
     localStorage.setItem("jax_starter_prompted", "1");
     fetch("saves/starter.json")
       .then(function (r) { return r.json(); })
@@ -560,12 +759,11 @@
             localStorage.setItem(k, o.localStorage[k]);
           });
         }
-        location.reload();
+        reloadGame();
       })
       .catch(function () {
         alert("Could not load starter save.");
-        hideSiteAlert();
+        alertBox.classList.remove("show");
       });
   };
-  alertClose.onclick = hideSiteAlert;
 })();

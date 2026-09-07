@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Retro Bowl Modded</title>
-<link rel="icon" type="image/jpeg" href="/img/icon.jpg">
+<link rel="icon" type="image/jpeg" href="img/icon.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 html,body{margin:0;padding:0;background:#000;border:0;overflow:hidden}
@@ -89,146 +89,166 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
   #jax-open{top:8px;right:8px;font-size:9px;padding:10px 11px}
   #jax-panel{top:8px;right:8px;bottom:8px;width:calc(100vw - 16px)}
 }
-#jax-alert{
+#jax-alert,#jax-export{
   display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.55);
   align-items:center;justify-content:center
 }
-#jax-alert.show{display:flex}
-#jax-alert .box{
+#jax-alert.show,#jax-export.show{display:flex}
+#jax-alert .box,#jax-export .box{
   width:min(360px,92vw);background:#1a4fd6;border:3px solid #fff;border-radius:12px;
   padding:16px;font-family:"Press Start 2P",monospace;color:#fff;text-align:center;
   box-shadow:#101010 12px 12px 0
 }
-#jax-alert .box p{font-size:8px;line-height:1.7;margin:0 0 14px}
-#jax-alert .actions{display:flex;gap:8px}
-#jax-alert .actions button{
+#jax-alert .box p,#jax-export .box p{font-size:8px;line-height:1.7;margin:0 0 14px}
+#jax-export .box input{
+  width:100%;box-sizing:border-box;font-family:"Press Start 2P",monospace;font-size:9px;color:#fff;
+  background:#163db0;border:2px solid #fff;border-radius:8px;padding:12px 10px;outline:none;margin:0 0 14px
+}
+#jax-alert .actions,#jax-export .actions{display:flex;gap:8px}
+#jax-alert .actions button,#jax-export .actions button{
   flex:1;font-family:"Press Start 2P",monospace;font-size:7px;color:#fff;
   background:#163db0;border:2px solid #fff;border-radius:8px;padding:10px 6px;cursor:pointer
 }
-#alert-close{display:none}
 </style>
 </head>
 <body>
 <div class="gm4html5_div_class" id="gm4html5_div_id">
   <img src="html5game/splash.png" id="GM4HTML5_loadingscreen" style="display:none" alt="">
-  <canvas id="canvas" width="853" height="480">
+  <canvas id="canvas" width="853" height="480" tabindex="0">
     <p>Your browser does not support HTML5 canvas.</p>
   </canvas>
 </div>
 
 <div id="jax-dimmer"></div>
-<button id="jax-open" type="button">MOD MENU</button>
+<button id="jax-open" type="button" tabindex="-1">MOD MENU</button>
 
 <div id="jax-panel">
   <div id="jax-head">
     <span id="jax-title">JAXSONS MOD MENU</span>
-    <button id="jax-x" type="button">X</button>
+    <button id="jax-x" type="button" tabindex="-1">X</button>
   </div>
   <div id="jax-body">
     <div class="mod-category">
       <h2>GAMEPLAY CHEATS</h2>
-      <label class="mod-toggle"><input type="checkbox" data-mod="fieldGoalAimbot">FIELD GOAL AIMBOT</label>
-      <label class="mod-toggle"><input type="checkbox" data-mod="noTackles">NO TACKLES</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="fieldGoalAimbot" tabindex="-1">FIELD GOAL AIMBOT</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noTackles" tabindex="-1">NO TACKLES</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noInterceptions" tabindex="-1">NO INTERCEPTIONS</label>
     </div>
     <div class="mod-category">
       <h2>PLAYER CHEATS</h2>
-      <label class="mod-toggle"><input type="checkbox" data-mod="noFumbles">NO FUMBLES</label>
-      <label class="mod-toggle"><input type="checkbox" data-mod="noInjuries">NO INJURIES</label>
-      <label class="mod-toggle"><input type="checkbox" data-mod="infiniteQBThrowRange">INFINITE QB THROW RANGE</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noFumbles" tabindex="-1">NO FUMBLES</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="noInjuries" tabindex="-1">NO INJURIES</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="infiniteQBThrowRange" tabindex="-1">INFINITE QB THROW RANGE</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="infiniteStamina" tabindex="-1">INFINITE STAMINA</label>
+      <label style="display:block;margin:12px 0 4px;font-size:9px">PLAYER SPEED</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <input id="v-speed" type="range" min="1" max="10" step="0.1" value="1" style="flex:1;accent-color:#fff" tabindex="-1">
+        <span id="v-speed-label" style="font-size:9px;min-width:32px">1.0x</span>
+      </div>
     </div>
     <div class="mod-category">
       <h2>GAME UTILITIES</h2>
-      <label class="mod-toggle"><input type="checkbox" data-mod="freezeClock">FREEZE CLOCK</label>
-      <label class="mod-toggle"><input type="checkbox" data-mod="unlimitedDowns">UNLIMITED DOWNS</label>
-      <button class="fullbtn" type="button" id="a-give-td">GIVE TD</button>
-      <button class="fullbtn" type="button" id="a-win-game">WIN GAME</button>
+      <label class="mod-toggle"><input type="checkbox" data-mod="freezeClock" tabindex="-1">FREEZE CLOCK</label>
+      <label class="mod-toggle"><input type="checkbox" data-mod="unlimitedDowns" tabindex="-1">UNLIMITED DOWNS</label>
+      <button class="fullbtn" type="button" id="a-give-td" tabindex="-1">GIVE TD</button>
+      <button class="fullbtn" type="button" id="a-win-game" tabindex="-1">WIN GAME</button>
     </div>
     <div class="sec">
       <label>COACHING CREDITS</label>
       <div class="line">
         <input id="v-credits" type="text" value="999999" inputmode="numeric">
-        <button class="sq" type="button" id="c-plus">+</button>
-        <button class="sq" type="button" id="c-minus">-</button>
+        <button class="sq" type="button" id="c-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="c-minus" tabindex="-1">-</button>
       </div>
       <div class="quick">
-        <button type="button" id="c-100">+100</button>
-        <button type="button" id="c-500">+500</button>
-        <button type="button" id="c-1000">+1000</button>
+        <button type="button" id="c-100" tabindex="-1">+100</button>
+        <button type="button" id="c-500" tabindex="-1">+500</button>
+        <button type="button" id="c-1000" tabindex="-1">+1000</button>
       </div>
-      <button class="fullbtn" type="button" id="a-credits">APPLY</button>
+      <button class="fullbtn" type="button" id="a-credits" tabindex="-1">APPLY</button>
     </div>
     <div class="sec">
       <label>SALARY CAP</label>
       <div class="line">
         <input id="v-salary" type="text" value="999999999" inputmode="numeric">
-        <button class="sq" type="button" id="s-plus">+</button>
-        <button class="sq" type="button" id="s-minus">-</button>
+        <button class="sq" type="button" id="s-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="s-minus" tabindex="-1">-</button>
       </div>
-      <button class="fullbtn" type="button" id="a-salary">APPLY</button>
+      <button class="fullbtn" type="button" id="a-salary" tabindex="-1">APPLY</button>
     </div>
     <div class="sec">
       <label>FANS</label>
       <div class="line">
         <input id="v-fans" type="text" value="100" inputmode="numeric">
-        <button class="sq" type="button" id="f-plus">+</button>
-        <button class="sq" type="button" id="f-minus">-</button>
+        <button class="sq" type="button" id="f-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="f-minus" tabindex="-1">-</button>
       </div>
-      <button class="fullbtn" type="button" id="a-fans">APPLY</button>
+      <button class="fullbtn" type="button" id="a-fans" tabindex="-1">APPLY</button>
     </div>
     <div class="sec">
       <label>TEAM MORALE</label>
-      <button class="fullbtn" type="button" id="a-morale-max">MAX TEAM MORALE</button>
+      <button class="fullbtn" type="button" id="a-morale-max" tabindex="-1">MAX TEAM MORALE</button>
     </div>
     <div class="sec">
       <label>ROSTER LIMIT</label>
       <div class="line">
         <input id="v-roster" type="text" value="17" inputmode="numeric">
-        <button class="sq" type="button" id="r-plus">+</button>
-        <button class="sq" type="button" id="r-minus">-</button>
+        <button class="sq" type="button" id="r-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="r-minus" tabindex="-1">-</button>
       </div>
-      <button class="fullbtn" type="button" id="a-roster">APPLY</button>
+      <button class="fullbtn" type="button" id="a-roster" tabindex="-1">APPLY</button>
     </div>
     <div class="sec">
       <label>DRAFT PICKS (ALL ROUNDS)</label>
       <div class="line">
         <input id="v-draft" type="text" value="5" inputmode="numeric">
-        <button class="sq" type="button" id="d-plus">+</button>
-        <button class="sq" type="button" id="d-minus">-</button>
+        <button class="sq" type="button" id="d-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="d-minus" tabindex="-1">-</button>
       </div>
-      <button class="fullbtn" type="button" id="a-draft">APPLY</button>
+      <button class="fullbtn" type="button" id="a-draft" tabindex="-1">APPLY</button>
     </div>
     <div class="sec">
       <label>FACILITIES (0-10)</label>
       <div class="line">
         <input id="v-fac" type="text" value="10" inputmode="numeric">
-        <button class="sq" type="button" id="fac-plus">+</button>
-        <button class="sq" type="button" id="fac-minus">-</button>
+        <button class="sq" type="button" id="fac-plus" tabindex="-1">+</button>
+        <button class="sq" type="button" id="fac-minus" tabindex="-1">-</button>
       </div>
       <div class="two">
-        <button type="button" id="a-fac-max">MAX</button>
-        <button type="button" id="a-fac-reset">RESET</button>
+        <button type="button" id="a-fac-max" tabindex="-1">MAX</button>
+        <button type="button" id="a-fac-reset" tabindex="-1">RESET</button>
       </div>
-      <button class="fullbtn" type="button" id="a-fac">APPLY</button>
+      <button class="fullbtn" type="button" id="a-fac" tabindex="-1">APPLY</button>
     </div>
     <div class="two">
-      <button type="button" id="a-export">EXPORT DATA</button>
-      <button type="button" id="a-import">IMPORT DATA</button>
+      <button type="button" id="a-export" tabindex="-1">EXPORT DATA</button>
+      <button type="button" id="a-import" tabindex="-1">IMPORT DATA</button>
     </div>
-    <input id="f-import" type="file" accept=".json,.save,application/json" style="display:none">
-    <button class="fullbtn" type="button" id="a-reload" style="margin-top:8px">RELOAD GAME</button>
+    <input id="f-import" type="file" accept=".json,.save,application/json" style="display:none" tabindex="-1">
+    <button class="fullbtn" type="button" id="a-reload" tabindex="-1" style="margin-top:8px">RELOAD GAME</button>
   </div>
   <div id="jax-foot">
-    <a href="https://github.com/jaxsonbunch/retro-bowl-modded" target="_blank" rel="noopener noreferrer">VIEW SOURCE CODE</a>
+    <a href="https://github.com/jaxsonbunch/retro-bowl-modded" target="_blank" rel="noopener noreferrer" tabindex="-1">VIEW SOURCE CODE</a>
   </div>
 </div>
 
 <div id="jax-alert">
   <div class="box">
-    <p id="alert-message">Load a modded starter save with max credits, salary cap, facilities, fans, and a full roster?</p>
+    <p>Load a modded starter save with max credits, salary cap, facilities, fans, and a full roster?</p>
     <div class="actions">
-      <button type="button" id="alert-no">NO</button>
-      <button type="button" id="alert-yes">YES</button>
-      <button type="button" id="alert-close">END</button>
+      <button type="button" id="alert-no" tabindex="-1">NO</button>
+      <button type="button" id="alert-yes" tabindex="-1">YES</button>
+    </div>
+  </div>
+</div>
+
+<div id="jax-export">
+  <div class="box">
+    <p>NAME YOUR FILE</p>
+    <input id="export-name" type="text" value="retrobowl-save" maxlength="64" autocomplete="off" spellcheck="false">
+    <div class="actions">
+      <button type="button" id="export-cancel" tabindex="-1">CANCEL</button>
+      <button type="button" id="export-ok" tabindex="-1">EXPORT</button>
     </div>
   </div>
 </div>
