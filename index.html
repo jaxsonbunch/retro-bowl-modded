@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,16 +37,11 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
   pointer-events:none;transition:opacity .2s ease,transform .25s ease,visibility 0s linear .25s
 }
 #jax-panel.open{opacity:1;visibility:visible;transform:translateX(0);pointer-events:auto;transition:opacity .2s ease,transform .25s ease,visibility 0s linear 0s}
-#jax-panel.mod-ui-hidden,#jax-open.mod-ui-hidden,#jax-dimmer.mod-ui-hidden{
-  opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity .2s ease,visibility 0s linear .2s
-}
 #jax-head{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 16px 13px;border-bottom:2px solid rgba(255,255,255,.35);flex-shrink:0
 }
 #jax-head span{font-size:12px;letter-spacing:.5px}
-#jax-title{display:flex;align-items:center;gap:9px}
 #jax-x{
   background:transparent;border:2px solid #fff;color:#fff;border-radius:4px;
   width:30px;height:30px;font-family:"Press Start 2P",monospace;font-size:11px;
@@ -143,7 +139,7 @@ div.gm4html5_div_class{margin:0;padding:0;border:0}
       <label class="mod-toggle"><input type="checkbox" data-mod="autoStiffArm" tabindex="-1">AUTO STIFF ARM</label>
       <label style="display:block;margin:12px 0 4px;font-size:9px">PLAYER SPEED</label>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <input id="v-speed" type="range" min="1" max="10" step="0.1" value="1" style="flex:1;accent-color:#fff" tabindex="-1">
+        <input id="v-speed" type="range" min="1" max="3" step="0.1" value="1" style="flex:1;accent-color:#fff" tabindex="-1">
         <span id="v-speed-label" style="font-size:9px;min-width:32px">1.0x</span>
       </div>
     </div>

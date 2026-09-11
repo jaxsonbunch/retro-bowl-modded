@@ -174260,3 +174260,89 @@ function _Gi5() {
 	}
 }
 cpd;
+
+
+
+;(function(){
+  if (window.__jaxSpeedPatch) return;
+  window.__jaxSpeedPatch = true;
+  window.__jaxFrame = 0;
+
+  function jaxGetMult(){
+    try {
+      if (!window.JaxMods) return 1;
+      var m = Number(window.JaxMods.playerSpeedMult);
+      if (!isFinite(m) || m <= 1) return 1;
+      if (m > 3) return 3;
+      return m;
+    } catch (e) { return 1; }
+  }
+
+  function jaxGetHolderId(){
+    try {
+      if (!window.global || window.global._d01 === undefined || typeof window._si !== "function") return null;
+      var balls = window._si(window.global._d01);
+      if (!balls) return null;
+      var holder = null;
+      var check = function(b){
+        if (!holder && b && b._X_ !== undefined && b._X_ !== null && b._X_ !== -4) holder = b._X_;
+      };
+      if (typeof balls.forEach === "function") balls.forEach(check);
+      else {
+        for (var k in balls) {
+          if (Object.prototype.hasOwnProperty.call(balls, k)) check(balls[k]);
+        }
+      }
+      return holder;
+    } catch (e) { return null; }
+  }
+
+  function jaxIsCarrier(player, holderId){
+    if (!player || holderId === null || holderId === undefined) return false;
+    if (player._O01 === 1) return false;
+    if (!(player._lT === true || player._lT === 1)) return false;
+    if (player.id === holderId || player === holderId) return true;
+    if (holderId && typeof holderId === "object" && holderId.id !== undefined && holderId.id === player.id) return true;
+    return false;
+  }
+
+  function jaxBoostPlayers(){
+    var mult = jaxGetMult();
+    if (mult <= 1) return;
+    if (typeof window._si !== "function") return;
+    var holderId = jaxGetHolderId();
+    if (holderId === null) return;
+    for (var id = 0; id < 140; id++) {
+      var list;
+      try { list = window._si(id); } catch (e) { continue; }
+      if (!list) continue;
+      var iter = function(inst){
+        if (!inst || inst._j51 === undefined) return;
+        if (!jaxIsCarrier(inst, holderId)) return;
+        if (inst._jaxBoostedFrame === window.__jaxFrame) return;
+        inst._jaxBoostedFrame = window.__jaxFrame;
+        inst._j51 = inst._j51 * (1 + (mult - 1) * 0.85);
+        if (inst._W1 !== undefined && inst._W1 > 0) {
+          var cap = 7 + mult * 3.5;
+          if (inst._W1 < cap) inst._W1 = Math.min(inst._W1 * (1 + (mult - 1) * 0.08), cap);
+        }
+      };
+      if (typeof list.forEach === "function") list.forEach(iter);
+      else {
+        for (var k in list) {
+          if (Object.prototype.hasOwnProperty.call(list, k)) iter(list[k]);
+        }
+      }
+    }
+  }
+
+  var _origGi5 = window._Gi5;
+  if (typeof _origGi5 === "function") {
+    window._Gi5 = function(){
+      window.__jaxFrame = (window.__jaxFrame + 1) | 0;
+      var r = _origGi5.apply(this, arguments);
+      try { jaxBoostPlayers(); } catch (e) {}
+      return r;
+    };
+  }
+})();
