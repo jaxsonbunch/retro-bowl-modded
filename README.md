@@ -1,6 +1,8 @@
 # Retro Bowl Modded
 
 A fan made version of Retro Bowl with a built in mod menu.
+> [!NOTE]
+> If you fork this repository, please consider giving it a star! It helps support the project. Thank you!
 
 ## Features
 
